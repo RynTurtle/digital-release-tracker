@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'notification.dart';
+
 
 void main() => runApp(const TabBarApp());
 
@@ -75,7 +77,7 @@ class _MainTabBarState extends State<MainTabBar>
         controller: _tabController,
         children: const [
           Center(child: Text("1")),
-          Center(child: Text("2")),
+          SearchBarApp(),
           Center(child: Text("3")),
         ],
       ),

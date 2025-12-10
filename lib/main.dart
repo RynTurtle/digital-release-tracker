@@ -18,56 +18,66 @@ class MainTabBar extends StatefulWidget {
   State<MainTabBar> createState() => _MainTabBarState();
 }
 
-
-class _MainTabBarState extends State<MainTabBar> {
+class _MainTabBarState extends State<MainTabBar>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   int _currentIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1)
+      ..addListener(() {
+        // update current index when swiping
+        if (!_tabController.indexIsChanging) {
+          setState(() {
+            _currentIndex = _tabController.index;
+          });
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      initialIndex: 1,
-      length: 3,
-      child: Scaffold(
-          appBar: AppBar(
-          toolbarHeight: 0,
-          bottom: TabBar(indicatorColor: Colors.blue,
-          unselectedLabelColor: Color.fromARGB(255, 49, 49, 49),
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-
-          tabs: <Widget>[
-              Tab(icon: Icon(
-                Icons.calendar_month,
-                size: 40,
-                // if current index is the first one then change colour to amber else dont 
-                color: _currentIndex == 0 ? Colors.blue:null,
-              )),
-
-              Tab(icon: Icon(
-                Icons.notifications,
-                size: 40,
-                color: _currentIndex == 1 ? Colors.amber:null,
-              )),
-
-              Tab(icon: Icon(
-                Icons.settings,
-                size: 40,
-                color: _currentIndex == 2 ? const Color.fromARGB(255, 0, 0, 0):null,
-
-              )),
-            ],
-          ),
-        ),
-
-        body: const TabBarView(
-          children: <Widget>[
-            Center(child: Text("1")),
-            Center(child: Text("2")),
-            Center(child: Text("3")),
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.blue,
+          tabs: [
+            Icon(
+              Icons.calendar_month,
+              size: 40,
+              // if the current index is the first then change colour to blue, else change color to default 
+              color: _currentIndex == 0 ? Colors.blue : const Color.fromARGB(255, 53, 52, 52),
+            ),
+            Icon(
+              Icons.notifications,
+              size: 40,
+              color: _currentIndex == 1 ? Colors.amber : const Color.fromARGB(255, 53, 52, 52),
+            ),
+            Icon(
+              Icons.settings,
+              size: 40,
+              color: _currentIndex == 2 ? Colors.black : const Color.fromARGB(255, 53, 52, 52),
+            ),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          Center(child: Text("1")),
+          Center(child: Text("2")),
+          Center(child: Text("3")),
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'notification.dart';
-
+import 'calendar.dart';
 
 void main() => runApp(const TabBarApp());
 
@@ -9,7 +9,10 @@ class TabBarApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: MainTabBar());
+    return const MaterialApp(
+      home: MainTabBar(),
+      debugShowCheckedModeBanner: false,
+    );
   }
 }
 
@@ -53,6 +56,7 @@ class _MainTabBarState extends State<MainTabBar>
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.blue,
+
           tabs: [
             Icon(
               Icons.calendar_month,
@@ -76,7 +80,7 @@ class _MainTabBarState extends State<MainTabBar>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          Center(child: Text("1")),
+          TableBasicsExample(),
           SearchBarApp(),
           Center(child: Text("3")),
         ],

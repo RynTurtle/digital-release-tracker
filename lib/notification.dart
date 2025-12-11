@@ -18,13 +18,14 @@ class _SearchBarAppState extends State<SearchBarApp> {
     );
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: themeData,
       home: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(50.0),
-          child:Column(
+          child: Column(
             children: [
-              // push to bottom 
+              // push to bottom
               const Spacer(),
               SearchAnchor(
                 builder: (BuildContext context, SearchController controller) {
@@ -35,21 +36,30 @@ class _SearchBarAppState extends State<SearchBarApp> {
                     ),
                     leading: const Icon(Icons.search),
                     hintText: 'search movie...',
-                    onSubmitted:(value) => debugPrint(value),
+                    onSubmitted: (value) => debugPrint(value),
                   );
                 },
 
-                // expand on this if you want to suggest movies before entering 
+                // expand on this if you want to suggest movies before entering
                 suggestionsBuilder:
                     (BuildContext context, SearchController controller) {
-                  return const <Widget>[];
-                },
-            ),
-            // 5% spacing 
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05,)
-          ])
+                      return const <Widget>[];
+                    },
+              ),
+              // 5% spacing
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+//class InfoCard extends StatefulWidget {}
+/*
+  now i need a box which shows results 
+  it needs to request for the searched movie, if its been found then display the movie image with the movie title and its digital release  if found
+  
+  async load to load the images/info as calendar 
+*/

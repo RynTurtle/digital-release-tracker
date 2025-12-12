@@ -7,6 +7,27 @@ class SearchBarApp extends StatefulWidget {
   State<SearchBarApp> createState() => _SearchBarAppState();
 }
 
+// builds the movie list by listview building each element 
+class MovieList extends StatelessWidget {
+  final List<int> _test = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: _test.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            height: 200,
+            color: Colors.amber,
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _SearchBarAppState extends State<SearchBarApp> {
   bool isDark = false;
 
@@ -25,10 +46,16 @@ class _SearchBarAppState extends State<SearchBarApp> {
           padding: const EdgeInsets.all(50.0),
           child: Column(
             children: [
-              // push to bottom
-              const Spacer(),
+              // movie list which takes up the rest of the space 
+              Expanded(
+                child: MovieList(),
+              ),
+
+              const SizedBox(height: 20),
+
+              //search bar at bottom of page
               SearchAnchor(
-                builder: (BuildContext context, SearchController controller) {
+                builder: (context, controller) {
                   return SearchBar(
                     controller: controller,
                     padding: const WidgetStatePropertyAll<EdgeInsets>(
@@ -39,15 +66,12 @@ class _SearchBarAppState extends State<SearchBarApp> {
                     onSubmitted: (value) => debugPrint(value),
                   );
                 },
-
-                // expand on this if you want to suggest movies before entering
-                suggestionsBuilder:
-                    (BuildContext context, SearchController controller) {
-                      return const <Widget>[];
-                    },
+                suggestionsBuilder: (context, controller) {
+                  return const <Widget>[];
+                },
               ),
-              // 5% spacing
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -55,11 +79,3 @@ class _SearchBarAppState extends State<SearchBarApp> {
     );
   }
 }
-
-//class InfoCard extends StatefulWidget {}
-/*
-  now i need a box which shows results 
-  it needs to request for the searched movie, if its been found then display the movie image with the movie title and its digital release  if found
-  
-  async load to load the images/info as calendar 
-*/

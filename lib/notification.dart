@@ -9,12 +9,13 @@ class SearchBarApp extends StatefulWidget {
 
 // builds the movie list by listview building each element 
 class MovieList extends StatelessWidget {
-  final List<int> _test = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  final List<dynamic> items;
+  const MovieList({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: _test.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -30,6 +31,7 @@ class MovieList extends StatelessWidget {
 
 class _SearchBarAppState extends State<SearchBarApp> {
   bool isDark = false;
+  List movie_data = [];
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
             children: [
               // movie list which takes up the rest of the space 
               Expanded(
-                child: MovieList(),
+                child: MovieList(items:movie_data),
               ),
 
               const SizedBox(height: 20),
@@ -63,7 +65,12 @@ class _SearchBarAppState extends State<SearchBarApp> {
                     ),
                     leading: const Icon(Icons.search),
                     hintText: 'search movie...',
-                    onSubmitted: (value) => debugPrint(value),
+                    onSubmitted: (value) {
+                       debugPrint(value); 
+                       setState(() {
+                         movie_data.add(value);
+                       });
+                    }
                   );
                 },
                 suggestionsBuilder: (context, controller) {

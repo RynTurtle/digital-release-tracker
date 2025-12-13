@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'notification.dart';
 import 'calendar.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() => runApp(const TabBarApp());
+void main() async {
+  await dotenv.load(fileName: "api_key.env");
+  debugPrint('Dotenv file exists: ${dotenv.isInitialized}');
+
+  runApp(const TabBarApp());
+}
 
 class TabBarApp extends StatelessWidget {
   const TabBarApp({super.key});

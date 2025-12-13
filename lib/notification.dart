@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'api.dart';
 
 
@@ -11,19 +12,39 @@ class SearchBarApp extends StatefulWidget {
 
 // builds the movie list by listview building each element 
 class MovieList extends StatelessWidget {
-  final List<dynamic> items;
-  const MovieList({super.key, required this.items});
+  final List<Map<String, dynamic>> items;
+  MovieList({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: items.length,
+      // build each widget item in the list 
       itemBuilder: (context, index) {
+        double container_height = 200;
+
+        String movie_title = items[index]["original_title"]; 
+        String theatrical_release = items[index]["release_date"]; 
+        String poster_path = items[index]["poster_path"] ?? ""; // can add image not found placeholder
+        String poster_url = "https://image.tmdb.org/t/p/w500$poster_path";
         return Padding(
+          //main box which holds movie info 
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            height: 200,
+            height: container_height,
             color: Colors.amber,
+          
+          // inside the box
+          child:Row(
+            children: [
+              Image.network(
+                poster_url,
+                // ensures 
+                height: container_height,
+                fit: BoxFit.cover,
+              ),
+            ],
+          )
           ),
         );
       },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'api.dart';
+
 
 class SearchBarApp extends StatefulWidget {
   const SearchBarApp({super.key});
@@ -31,7 +33,7 @@ class MovieList extends StatelessWidget {
 
 class _SearchBarAppState extends State<SearchBarApp> {
   bool isDark = false;
-  List movie_data = [];
+  List<Map<String, dynamic>>  movie_data =  [];
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +67,13 @@ class _SearchBarAppState extends State<SearchBarApp> {
                     ),
                     leading: const Icon(Icons.search),
                     hintText: 'search movie...',
-                    onSubmitted: (value) {
-                       debugPrint(value); 
+                    onSubmitted: (value) async {
+                        // add the searched movies response to the list builder
+                        final results = await search_movie(value);
+
                        setState(() {
-                         movie_data.add(value);
+                        // reload the page
+                        movie_data = results;
                        });
                     }
                   );

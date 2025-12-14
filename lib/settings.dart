@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
-  String _errorMessage = '';
+  String message = '';
  
   void _handleLogin() {
     final username = _usernameController.text;
@@ -39,10 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = _authService.login(username, password);
  
     if (success) {
-      setState(() => _errorMessage = '');
+      setState(() => message = 'Success');
     } else {
       // Show Error
-      setState(() => _errorMessage = 'Invalid Credentials');
+      setState(() => message = 'Invalid Credentials');
     }
   }
  
@@ -69,22 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _handleLogin,
               child: const Text('Login'),
             ),
-            if (_errorMessage.isNotEmpty)
+            if (message.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: Text(
-                  _errorMessage,
-                  style: const TextStyle(color: Colors.red),
+                  message,
+                  style: TextStyle(color: message != "Success" ? Colors.red : Colors.green,
                 ),
-              )
-            else
-              const Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: Text(
-                  'Success',
-                  style: TextStyle(color: Colors.green),
-                ),
-              ),
+              ))
           ],
         ),
       ),

@@ -1,7 +1,8 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'settings.dart';
 import 'notification.dart';
 import 'calendar.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   await dotenv.load(fileName: "api_key.env");
@@ -88,7 +89,7 @@ class _MainTabBarState extends State<MainTabBar>
         children: const [
           TableBasicsExample(),
           SearchBarApp(),
-          Center(child: Text("3")),
+           LoginScreen(),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'api.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 
 class SearchBarApp extends StatefulWidget {
@@ -25,26 +26,58 @@ class MovieList extends StatelessWidget {
 
         String movie_title = items[index]["original_title"]; 
         String theatrical_release = items[index]["release_date"]; 
-        String poster_path = items[index]["poster_path"] ?? ""; // can add image not found placeholder
-        String poster_url = "https://image.tmdb.org/t/p/w500$poster_path";
+        String poster_path = items[index]["poster_path"] ?? ""; 
+        String poster_url = "https://image.tmdb.org/t/p/w300$poster_path";
         return Padding(
           //main box which holds movie info 
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(1.0),
           child: Container(
             height: container_height,
-            color: Colors.amber,
+            //color: Colors.amber,
           
           // inside the box
           child:Row(
             children: [
+              // movie image 
               Image.network(
                 poster_url,
                 // ensures 
                 height: container_height,
                 fit: BoxFit.cover,
+                
+                errorBuilder: (context, error, stackTrace) {
+                  // replaces image with the broken image icon if the 
+                  return const Icon(Icons.broken_image, size: 150);
+               },
               ),
-            ],
-          )
+            
+              // movie text (movie title, movie date top to bottom)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                AutoSizeText(
+                  movie_title,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                AutoSizeText(
+                  "Theatrical release: $theatrical_release",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -15,7 +15,14 @@ class SearchBarApp extends StatefulWidget {
 class MovieList extends StatelessWidget {
   final List<Map<String, dynamic>> items;
   MovieList({super.key, required this.items});
+    final Map<int, Future<String?>> _digitalDateCache = {};
 
+  Future<String?> getCachedDigitalDate(int movieId) {
+    return _digitalDateCache.putIfAbsent(
+      movieId,
+      () => get_digital_date(movieId),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -82,9 +89,8 @@ class MovieList extends StatelessWidget {
                   style: release_style
                     ),
 
-
                 FutureBuilder<String?>(
-                  future: get_digital_date(movie_id),
+                  future: getCachedDigitalDate(movie_id),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Text("Digital release: Loading...",style: release_style);

@@ -28,6 +28,16 @@ class MovieList extends StatelessWidget {
         String theatrical_release = items[index]["release_date"]; 
         String poster_path = items[index]["poster_path"] ?? ""; 
         String poster_url = "https://image.tmdb.org/t/p/w300$poster_path";
+
+        int movie_id = items[index]["id"];
+
+        final TextStyle release_style = const TextStyle(
+          fontSize: 14,
+          color: Colors.black54,
+        );
+
+        //debugPrint(movie_id.toString());
+        //String digital_release = get_digital_date(movie_id) 
         return Padding(
           //main box which holds movie info 
           padding: const EdgeInsets.all(1.0),
@@ -65,14 +75,28 @@ class MovieList extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+
+
                 AutoSizeText(
                   "Theatrical release: $theatrical_release",
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                        ),
-                      ),
+                  style: release_style
+                    ),
+
+
+                FutureBuilder<String?>(
+                  future: get_digital_date(movie_id),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Digital release: Loading...",style: release_style);
+                    }
+
+                    if (!snapshot.hasData || snapshot.data == null) {
+                      return Text("Digital release: N/A",style: release_style);
+                    }
+
+                    return Text("Digital release: ${snapshot.data}",style: release_style);
+                  },
+                ),
                     ],
                   ),
                 ),

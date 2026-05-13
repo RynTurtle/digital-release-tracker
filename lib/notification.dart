@@ -35,6 +35,7 @@ class MovieList extends StatelessWidget {
         String release_date = items[index]["release_date"] ?? items[index]["first_air_date"]; 
         String poster_path = items[index]["poster_path"] ?? ""; 
         String poster_url = "https://image.tmdb.org/t/p/w300$poster_path";
+        String search_type = (items[index]["search_type"] ?? "a").toString();
 
         int id = items[index]["id"];
 
@@ -82,6 +83,11 @@ class MovieList extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
+                AutoSizeText(
+                  search_type == "movie" ? "MOVIE" : "TV",
+                  style: release_style
+                    ),
 
 
                 AutoSizeText(
@@ -154,9 +160,12 @@ class _SearchBarAppState extends State<SearchBarApp> {
                     hintText: 'search for movie/show...',
                     onSubmitted: (value) async {
                         // add the searched movies and tv responses to the list builder
-                        final r1 = await search("movie",value);
-                        final r2 = await search("tv",value);
-                        r1.addAll(r2);
+                        final r1 = await search("movie", value);
+                        final r2 = await search("tv", value);
+                        for (var item in r1) {item["search_type"] = "movie";}
+                        for (var item in r2) {item["search_type"] = "tv";}
+                        
+                        r1.addAll(r2); // merge the two lists 
                        setState(() {
                         // reload the page
                         search_results = r1;

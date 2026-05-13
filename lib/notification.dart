@@ -30,12 +30,13 @@ class MovieList extends StatelessWidget {
       itemBuilder: (context, index) {
         double container_height = 200;
 
-        String movie_title = items[index]["original_title"]; 
-        String theatrical_release = items[index]["release_date"]; 
+
+        String title = items[index]["original_title"] ?? items[index]["original_name"]; 
+        String release_date = items[index]["release_date"] ?? items[index]["first_air_date"]; 
         String poster_path = items[index]["poster_path"] ?? ""; 
         String poster_url = "https://image.tmdb.org/t/p/w300$poster_path";
 
-        int movie_id = items[index]["id"];
+        int id = items[index]["id"];
 
         final TextStyle release_style = const TextStyle(
           fontSize: 14,
@@ -74,7 +75,7 @@ class MovieList extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 AutoSizeText(
-                  movie_title,
+                  title,
                   maxLines: 2,
                   style: const TextStyle(
                     fontSize: 18,
@@ -84,19 +85,20 @@ class MovieList extends StatelessWidget {
 
 
                 AutoSizeText(
-                  "Theatrical release: $theatrical_release",
+                  "Release date: $release_date",
                   style: release_style
                     ),
 
                 FutureBuilder<String?>(
-                  future: getCachedDigitalDate(movie_id),
+                  future: getCachedDigitalDate(id),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Text("Digital release: Loading...",style: release_style);
                     }
 
                     if (!snapshot.hasData || snapshot.data == null) {
-                      return Text("Digital release: N/A",style: release_style);
+                      // if theres no digital release date 
+                      return Text("",style: release_style);
                     }
 
                     return Text("Digital release: ${snapshot.data}",style: release_style);
@@ -116,7 +118,7 @@ class MovieList extends StatelessWidget {
 
 class _SearchBarAppState extends State<SearchBarApp> {
   bool isDark = false;
-  List<Map<String, dynamic>>  movie_data =  [];
+  List<Map<String, dynamic>>  search_results =  [];
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +137,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
             children: [
               // movie list which takes up the rest of the space 
               Expanded(
-                child: MovieList(items:movie_data),
+                child: MovieList(items:search_results),
               ),
 
               const SizedBox(height: 20),
@@ -149,14 +151,15 @@ class _SearchBarAppState extends State<SearchBarApp> {
                       EdgeInsets.symmetric(horizontal: 16.0),
                     ),
                     leading: const Icon(Icons.search),
-                    hintText: 'search movie...',
+                    hintText: 'search for movie/show...',
                     onSubmitted: (value) async {
-                        // add the searched movies response to the list builder
-                        final results = await search_movie(value);
-
+                        // add the searched movies and tv responses to the list builder
+                        final r1 = await search("movie",value);
+                        final r2 = await search("tv",value);
+                        r1.addAll(r2);
                        setState(() {
                         // reload the page
-                        movie_data = results;
+                        search_results = r1;
                        });
                     }
                   );

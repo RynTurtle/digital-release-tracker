@@ -36,7 +36,7 @@ Future<List<Map<String, dynamic>>> search(String search_type, String search_quer
 
 
 
-Future<String> get_digital_date(int movie_id) async {
+Future<String?> get_digital_date(int movie_id) async {
   final uri = Uri.https(
     'api.themoviedb.org',
     '/3/movie/$movie_id/release_dates',
@@ -65,6 +65,6 @@ Future<String> get_digital_date(int movie_id) async {
           }
         }
     }
-    throw Exception("digital release not found");
+  return null; // no date found  
 }  
 

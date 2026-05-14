@@ -94,6 +94,13 @@ class _MovieListState extends State<MovieList> {
 
               if (result == true) {
                 debugPrint("Added to watchlist: $id");
+                if (search_type == "movie") { // if its a movie thats been added 
+                final String? digitalDate = await getCachedDigitalDate(id);
+                  if (digitalDate != null ){ 
+                    item["digital_date"] = digitalDate; // add to the item which will be added to watchlist data
+                  }
+                }
+
                 await WatchlistStorage.addToWatchlist(item);
 
               }

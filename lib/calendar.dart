@@ -14,7 +14,6 @@ class _CalendarState extends State<Calendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // need to change when making it for real
   final DateTime _firstDay = DateTime.utc(2000, 1, 1);
   final DateTime _lastDay = DateTime.utc(2100, 12, 31);
 
@@ -54,8 +53,21 @@ class _CalendarState extends State<Calendar> {
 
       watchlistEvents.putIfAbsent(date, () => []);
       watchlistEvents[date]!.add(item);
-    }
+    
 
+      // add digital date as a duplicate event
+      final digitalDateString = item["digital_date"];
+      if (digitalDateString != null && digitalDateString != "") {
+        final digitalDate = normalize(DateTime.parse(digitalDateString));
+
+        // create a modified copy so you can tell it's digital
+        final digitalItem = Map<String, dynamic>.from(item);
+        digitalItem["event_type"] = "digital";
+
+        watchlistEvents.putIfAbsent(digitalDate, () => []);
+        watchlistEvents[digitalDate]!.add(digitalItem);
+      }
+    }
     setState(() {});
   }
 

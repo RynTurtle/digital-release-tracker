@@ -53,7 +53,6 @@ class _CalendarState extends State<Calendar> {
 
       watchlistEvents.putIfAbsent(date, () => []);
       watchlistEvents[date]!.add(item);
-    
 
       // add digital date as a duplicate event
       final digitalDateString = item["digital_date"];
@@ -68,7 +67,28 @@ class _CalendarState extends State<Calendar> {
         watchlistEvents[digitalDate]!.add(digitalItem);
       }
     }
+
     setState(() {});
+  }
+
+  List<Map<String, dynamic>> _getUpcomingEvents() {
+    final all = <Map<String, dynamic>>[];
+
+    watchlistEvents.forEach((date, items) {
+      for (var item in items) {
+        final copy = Map<String, dynamic>.from(item);
+        copy["event_date"] = date;
+        all.add(copy);
+      }
+    });
+
+    all.sort((a, b) {
+      final da = a["event_date"] as DateTime;
+      final db = b["event_date"] as DateTime;
+      return da.compareTo(db);
+    });
+
+    return all;
   }
 
   @override
@@ -81,86 +101,122 @@ class _CalendarState extends State<Calendar> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: TableCalendar(
-        firstDay: _firstDay,
-        lastDay: _lastDay,
-        focusedDay: _focusedDay,
-        calendarFormat: _calendarFormat,
 
-        // loads events for each day
-        eventLoader: (day) {
-          final d = normalize(day);
-          return watchlistEvents[d] ?? [];
-        },
+      // ✅ FIX: keep calendar and list separate (no shared scroll)
+      body: Column(
+        children: [
+          Expanded(
+            flex: 3,
+            child: TableCalendar(
+              firstDay: _firstDay,
+              lastDay: _lastDay,
+              focusedDay: _focusedDay,
+              calendarFormat: _calendarFormat,
 
-        selectedDayPredicate: (day) {
-          // Use `selectedDayPredicate` to determine which day is currently selected.
-          // If this returns true, then `day` will be marked as selected.
+              eventLoader: (day) {
+                final d = normalize(day);
+                return watchlistEvents[d] ?? [];
+              },
 
-          // Using `isSameDay` is recommended to disregard
-          // the time-part of compared DateTime objects.
-          return isSameDay(_selectedDay, day);
-        },
+              selectedDayPredicate: (day) =>
+                  isSameDay(_selectedDay, day),
 
-        onDaySelected: (selectedDay, focusedDay) {
-          if (!isSameDay(_selectedDay, selectedDay)) {
-            // Call `setState()` when updating the selected day
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          }
-        },
+              onDaySelected: (selectedDay, focusedDay) {
+                if (!isSameDay(_selectedDay, selectedDay)) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                }
+              },
 
-        onFormatChanged: (format) {
-          if (_calendarFormat != format) {
-            // Call `setState()` when updating calendar format
-            setState(() {
-              _calendarFormat = format;
-            });
-          }
-        },
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
 
-        onPageChanged: (focusedDay) {
-          // No need to call `setState()` here
-          _focusedDay = focusedDay;
-        },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
 
-        // show watchlist items inside the day boxes
-        calendarBuilders: CalendarBuilders(
-          markerBuilder: (context, day, events) {
-            if (events.isEmpty) return null;
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, day, events) {
+                  if (events.isEmpty) return null;
 
-            final first = events[0] as Map<String, dynamic>;
+                  final first = events[0] as Map<String, dynamic>;
 
-            // tv uses original_name, movie uses original_title
-            final title = first["original_title"] ??
-                first["original_name"] ??
-                "Unknown";
+                  final title = first["original_title"] ??
+                      first["original_name"] ??
+                      "Unknown";
 
-            return Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Colors.white,
-                  ),
-                ),
+                  final isDigital = first["event_type"] == "digital";
+
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: isDigital ? Colors.blue : Colors.green,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+          ),
+
+          Expanded(
+            flex: 2,
+            child: ScrollConfiguration(
+              behavior: const ScrollBehavior().copyWith(
+                overscroll: false,
+              ),
+              child: ListView.builder(
+                physics: const ClampingScrollPhysics(),
+                itemCount: _getUpcomingEvents().length,
+                itemBuilder: (context, index) {
+                  final item = _getUpcomingEvents()[index];
+
+                  final title = item["original_title"] ??
+                      item["original_name"] ??
+                      "Unknown";
+
+                  final date = item["event_date"] as DateTime;
+
+                  final isDigital = item["event_type"] == "digital";
+
+                  return Card(
+                    child: ListTile(
+                      leading: Icon(
+                        isDigital ? Icons.download : Icons.movie,
+                        color: isDigital ? Colors.blue : Colors.green,
+                      ),
+                      title: Text(title),
+                      subtitle: Text(
+                        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

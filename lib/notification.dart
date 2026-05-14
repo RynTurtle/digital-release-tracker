@@ -65,9 +65,35 @@ class _MovieListState extends State<MovieList> {
           padding: const EdgeInsets.all(1.0),
           child: InkWell(
             // makes the whole item clickable
-            onTap: () {
-              print("Clicked item id: $id");
-              // open details page or add to watchlist
+            onTap: () async {
+                final result = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("Add to Watchlist?"),
+                    content: Text("Do you want to add \"$title\" to your watchlist?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, false); // NO
+                        },
+                        child: const Text("No"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context, true); // YES
+                        },
+                        child: const Text("Yes"),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (result == true) {
+                debugPrint("Added to watchlist: $id");
+              }
+
             },
             child: Container(
               height: container_height,

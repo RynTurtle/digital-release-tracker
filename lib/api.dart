@@ -33,26 +33,7 @@ Future<List<Map<String, dynamic>>> search(String search_type, String search_quer
   }
 }  
 
-Future<List<Map<String, dynamic>>> search_tv(String search_query) async {
-  final uri = Uri.https(
-    'api.themoviedb.org',
-    '/3/search/tv',
-    {'query': search_query},
-  );
 
-  var response = await http.get(uri,headers: getHeaders());
-  if (response.statusCode == 200) {
-    var request = convert.jsonDecode(response.body) as Map<String, dynamic>;
-    var search_results = request["results"]; 
-    //debugPrint(search_results.toString());
-    // convert the json into a list containing dictionary's
-    final List<Map<String, dynamic>> results = List<Map<String, dynamic>>.from(search_results);
-
-    return results;
-  }else{
-    throw Exception("TMDB request failed, status code: ${response.statusCode}");
-  }
-}  
 
 
 Future<String> get_digital_date(int movie_id) async {

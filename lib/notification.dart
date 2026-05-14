@@ -162,13 +162,21 @@ class _SearchBarAppState extends State<SearchBarApp> {
                         // add the searched movies and tv responses to the list builder
                         final r1 = await search("movie", value);
                         final r2 = await search("tv", value);
+                        // add what type each result is 
                         for (var item in r1) {item["search_type"] = "movie";}
                         for (var item in r2) {item["search_type"] = "tv";}
                         
-                        r1.addAll(r2); // merge the two lists 
+
+                        final combined = [...r1,...r2]; 
+                        combined.sort((a, b) {
+                          final popA = (a["popularity"] ?? 0).toDouble();
+                          final popB = (b["popularity"] ?? 0).toDouble();
+                          return popB.compareTo(popA); //  compare two values and swap until whole list is in order 
+                        });
+
                        setState(() {
                         // reload the page
-                        search_results = r1;
+                        search_results = combined;
                        });
                     }
                   );

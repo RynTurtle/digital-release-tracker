@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'watchlist.dart';
 
 class SearchBarApp extends StatefulWidget {
   const SearchBarApp({super.key});
@@ -36,24 +37,25 @@ class _MovieListState extends State<MovieList> {
       itemBuilder: (context, index) {
         double container_height = 200;
 
+        final item = widget.items[index];
+
         // tv uses original_name, movie uses original_title
-        String title = widget.items[index]["original_title"] ??
-            widget.items[index]["original_name"] ??
-            "Unknown";
+        String title = item["original_title"] ??
+            item["original_name"] ?? "";
 
         // tv uses first_air_date, movie uses release_date
-        String release_date = widget.items[index]["release_date"] ??
-            widget.items[index]["first_air_date"] ??
+        String release_date =  item["release_date"] ??
+            item["first_air_date"] ??
             "N/A";
 
-        String poster_path = widget.items[index]["poster_path"] ?? "";
+        String poster_path = item["poster_path"] ?? "";
         String poster_url = "https://image.tmdb.org/t/p/w300$poster_path";
 
         // manually added in search results
         String search_type =
-            (widget.items[index]["search_type"] ?? "unknown").toString();
+            (item["search_type"] ?? "unknown").toString();
 
-        int id = widget.items[index]["id"];
+        int id = item["id"];
 
         final TextStyle release_style = const TextStyle(
           fontSize: 14,
@@ -80,7 +82,7 @@ class _MovieListState extends State<MovieList> {
                         child: const Text("No"),
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context, true); // YES
                         },
                         child: const Text("Yes"),
@@ -92,6 +94,8 @@ class _MovieListState extends State<MovieList> {
 
               if (result == true) {
                 debugPrint("Added to watchlist: $id");
+                await WatchlistStorage.addToWatchlist(item);
+
               }
 
             },

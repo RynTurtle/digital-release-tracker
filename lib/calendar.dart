@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'watchlist.dart'; // uses WatchlistStorage.loadWatchlist()
-
+import 'api.dart';
 class Calendar extends StatefulWidget {
   const Calendar({super.key});
 
@@ -37,34 +37,79 @@ class _CalendarState extends State<Calendar> {
     });
 
     // rebuild event map
-    loadEvents();
+    await loadEvents();
   }
 
   // build calendar events map from watchlist
-  void loadEvents() {
+  Future<void> loadEvents() async {
     watchlistEvents.clear();
 
     for (var item in watchlist) {
-      // tv uses first_air_date, movie uses release_date
-      final dateString = item["release_date"] ?? item["first_air_date"];
-      if (dateString == null || dateString == "") continue;
+      final id = item["id"];
+      final searchType = item["search_type"];
 
-      final date = normalize(DateTime.parse(dateString));
+      if (id == null) continue;
 
-      watchlistEvents.putIfAbsent(date, () => []);
-      watchlistEvents[date]!.add(item);
+      // =========================
+      // TV SHOWS (latest season + episodes)
+      // =========================
+      if (searchType == "tv") {
+        final seasonDateString =
+            await get_latest_season_date(id);
 
-      // add digital date as a duplicate event
-      final digitalDateString = item["digital_date"];
-      if (digitalDateString != null && digitalDateString != "") {
-        final digitalDate = normalize(DateTime.parse(digitalDateString));
+        if (seasonDateString != null &&
+            seasonDateString != "") {
+          final seasonDate =
+              normalize(DateTime.parse(seasonDateString));
 
-        // create a modified copy so you can tell it's digital
-        final digitalItem = Map<String, dynamic>.from(item);
-        digitalItem["event_type"] = "digital";
+          watchlistEvents.putIfAbsent(seasonDate, () => []);
+          watchlistEvents[seasonDate]!.add({
+            ...item,
+            "event_type": "season",
+          });
+        }
 
-        watchlistEvents.putIfAbsent(digitalDate, () => []);
-        watchlistEvents[digitalDate]!.add(digitalItem);
+        final episodes =
+            await get_latest_season_episodes(id);
+
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+
+        for (var ep in episodes) {
+          final airDateString = ep["air_date"];
+          if (airDateString == null || airDateString == "") continue;
+
+          final airDate = DateTime.parse(airDateString);
+
+          if (airDate.isBefore(today)) continue;
+
+          final date = normalize(airDate);
+
+          watchlistEvents.putIfAbsent(date, () => []);
+          watchlistEvents[date]!.add({
+            ...item,
+            "event_type": "episode",
+            "episode_name": ep["name"],
+            "episode_number": ep["episode_number"],
+          });
+        }
+      }
+
+      // =========================
+      // MOVIES (release date only)
+      // =========================
+      else if (searchType == "movie") {
+        final releaseDate = item["release_date"];
+
+        if (releaseDate != null && releaseDate != "") {
+          final date = normalize(DateTime.parse(releaseDate));
+
+          watchlistEvents.putIfAbsent(date, () => []);
+          watchlistEvents[date]!.add({
+            ...item,
+            "event_type": "movie",
+          });
+        }
       }
     }
 
@@ -102,7 +147,7 @@ class _CalendarState extends State<Calendar> {
     return Scaffold(
       appBar: AppBar(),
 
-      // ✅ FIX: keep calendar and list separate (no shared scroll)
+      // keep calendar and list separate (no shared scroll)
       body: Column(
         children: [
           Expanded(
@@ -146,22 +191,30 @@ class _CalendarState extends State<Calendar> {
                 markerBuilder: (context, day, events) {
                   if (events.isEmpty) return null;
 
-                  final first = events[0] as Map<String, dynamic>;
+                  final first =
+                      events[0] as Map<String, dynamic>;
 
-                  final title = first["original_title"] ??
+                  final title = first["episode_name"] ??
+                      first["season_name"] ??
+                      first["original_title"] ??
                       first["original_name"] ??
-                      "Unknown";
+                      "Event";
 
-                  final isDigital = first["event_type"] == "digital";
+                  final type = first["event_type"];
 
                   return Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: 2),
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        color: isDigital ? Colors.blue : Colors.green,
+                        color: type == "episode"
+                            ? Colors.purple
+                            : type == "movie"
+                                ? Colors.green
+                                : Colors.blue,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -198,13 +251,21 @@ class _CalendarState extends State<Calendar> {
 
                   final date = item["event_date"] as DateTime;
 
-                  final isDigital = item["event_type"] == "digital";
+                  final type = item["event_type"];
 
                   return Card(
                     child: ListTile(
                       leading: Icon(
-                        isDigital ? Icons.download : Icons.movie,
-                        color: isDigital ? Colors.blue : Colors.green,
+                        type == "episode"
+                            ? Icons.movie
+                            : type == "movie"
+                                ? Icons.local_movies
+                                : Icons.calendar_month,
+                        color: type == "episode"
+                            ? Colors.purple
+                            : type == "movie"
+                                ? Colors.green
+                                : Colors.blue,
                       ),
                       title: Text(title),
                       subtitle: Text(
